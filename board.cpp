@@ -1,12 +1,17 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+// Players with ability to make moves
 enum class Player
 {
 	user = 0,
 	computer = 1
 };
 
+/* Board class with helper functions
+TODO:
+Add scores
+*/
 class Board
 {
 public:
@@ -16,18 +21,31 @@ public:
 	class Invalid_Move
 	{
 	};
-	Board(int sz);
-	void print() const;
-	void add_move(int row, int col, bool orientation, Player player);
+	Board();													   // default initializer
+	Board(int sz);												   // initializer
+	void print() const;											   // print board to terminal
+	void add_move(int row, int col, bool vertical, Player player); // make a move
 
 private:
-	int size;
-	vector<vector<bool>> horizontal_dashes;
-	vector<vector<bool>> vertical_dashes;
-	vector<vector<char>> squares_claimed; // C=computer, U = user, <space> = unclaimed
-	void recalculate_squares(Player player);
+	int size;								 // size of board
+	vector<vector<bool>> horizontal_dashes;	 // store horizontal lines
+	vector<vector<bool>> vertical_dashes;	 // store vertical lines
+	vector<vector<char>> squares_claimed;	 // store the owner of squares in grid
+	void recalculate_squares(Player player); // recalculate owner of squares in grid
 };
 
+// By default initializes Board with size 3
+Board::Board()
+{
+	size = 3;
+	horizontal_dashes = vector<vector<bool>>(size + 1, vector<bool>(size, false));
+	vertical_dashes = vector<vector<bool>>(size, vector<bool>(size + 1, false));
+	squares_claimed = vector<vector<char>>(size, vector<char>(size, ' '));
+}
+
+/* Initialize Board with size = sz
+Throws error for invalid size
+*/
 Board::Board(int sz)
 {
 	if (sz <= 0)
@@ -35,15 +53,17 @@ Board::Board(int sz)
 		throw Invalid_Size{};
 	}
 	size = sz;
-
 	horizontal_dashes = vector<vector<bool>>(size + 1, vector<bool>(size, false));
 	vertical_dashes = vector<vector<bool>>(size, vector<bool>(size + 1, false));
 	squares_claimed = vector<vector<char>>(size, vector<char>(size, ' '));
 }
 
+/*Print board on terminal
+Ugly code, rewrite if better method found
+*/
 void Board::print() const
 {
-	static const char point = (char)254u;
+	static const char point = (char)254u; // character for vertex
 	cout << point;
 	for (int i = 0; i < size; i++)
 	{
@@ -73,11 +93,17 @@ void Board::print() const
 	}
 }
 
-void Board::add_move(int row, int col, bool orientation, Player player) // orientation1 = vertical, 0=horizontal
+/*Adds move made by Player and recalculates owners of squares*/
+
+void Board::add_move(int row, int col, bool vertical, Player player)
 {
-	if (orientation)
+	if (row < 0 || row > (size + vertical) || col < 0 || col > (size + !vertical)) // maybe oversmart way to check bounds
 	{
-		if (row < 0 || row >= size || col < 0 || col > size)
+		throw Invalid_Move{};
+	}
+	if (vertical)
+	{
+		if (vertical_dashes[row][col]) // throw error if move is already made
 		{
 			throw Invalid_Move{};
 		}
@@ -85,22 +111,23 @@ void Board::add_move(int row, int col, bool orientation, Player player) // orien
 	}
 	else
 	{
-		if (row < 0 || row > size || col < 0 || col >= size)
+		if (horizontal_dashes[row][col]) // throw error if move is already made
 		{
 			throw Invalid_Move{};
 		}
 		horizontal_dashes[row][col] = 1;
 	}
-	recalculate_squares(player);
+	recalculate_squares(player); // recalculate squares after making move
 }
 
+/*calculates owners of squares by checking 4 edges of square*/
 void Board::recalculate_squares(Player player)
 {
 	for (int i = 0; i < size; i++)
 	{
 		for (int j = 0; j < size; j++)
 		{
-			if (squares_claimed[i][j] == ' ' && horizontal_dashes[i][j] && horizontal_dashes[i + 1][j] && vertical_dashes[i][j] && vertical_dashes[i][j + 1])
+			if (squares_claimed[i][j] == ' ' && horizontal_dashes[i][j] && horizontal_dashes[i + 1][j] && vertical_dashes[i][j] && vertical_dashes[i][j + 1]) // checks if square already has a owner, then checks if all 4 edges are filled
 			{
 				if (player == Player::user)
 				{
@@ -117,7 +144,7 @@ void Board::recalculate_squares(Player player)
 
 int main()
 {
-	Board game{4};
+	Board game{3};
 	game.add_move(0, 0, 0, Player::user);
 	game.add_move(1, 2, 0, Player::user);
 	game.add_move(0, 0, 1, Player::user);
@@ -130,5 +157,7 @@ int main()
 	game.add_move(0, 1, 0, Player::user);
 	game.add_move(0, 2, 1, Player::user);
 	game.add_move(1, 1, 0, Player::computer);
+	game.add_move(2, 1, 1, Player::computer);
+	game.add_move(2, 1, 0, Player::user);
 	game.print();
 }
