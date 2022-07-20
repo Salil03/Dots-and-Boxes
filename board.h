@@ -12,6 +12,7 @@ enum class Player
 TODO:
 Add scores
 */
+
 class Board
 {
 public:
@@ -21,17 +22,20 @@ public:
 	class Invalid_Move
 	{
 	};
-	Board();													   // default initializer
-	Board(int sz);												   // initializer
-	void print() const;											   // print board to terminal
-	void add_move(int row, int col, bool vertical, Player player); // make a move
+	Board();																	 // default initializer
+	Board(int sz);																 // initializer
+	void print() const;															 // print board to terminal
+	void add_move(int row, int col, bool vertical, Player player, char initial); // make a move
+	int get_score(const char &initial) const;									 // update score
+	bool finished() const;														 // check if game finished
 
 private:
-	int size;								 // size of board
-	vector<vector<bool>> horizontal_dashes;	 // store horizontal lines
-	vector<vector<bool>> vertical_dashes;	 // store vertical lines
-	vector<vector<char>> squares_claimed;	 // store the owner of squares in grid
-	void recalculate_squares(Player player); // recalculate owner of squares in grid
+	int size;								// size of board
+	vector<vector<bool>> horizontal_dashes; // store horizontal lines
+	vector<vector<bool>> vertical_dashes;	// store vertical lines
+	vector<vector<char>> squares_claimed;	// store the owner of squares in grid
+	void recalculate_squares(char initial); // recalculate owner of squares in grid
+	friend class Computer;					// to allow algo to access horizontal_dashes, etc.
 };
 
 // By default initializes Board with size 3
@@ -95,7 +99,7 @@ void Board::print() const
 
 /*Adds move made by Player and recalculates owners of squares*/
 
-void Board::add_move(int row, int col, bool vertical, Player player)
+void Board::add_move(int row, int col, bool vertical, Player player, char initial)
 {
 	if (row < 0 || row > (size + vertical) || col < 0 || col > (size + !vertical)) // maybe oversmart way to check bounds
 	{
@@ -117,11 +121,11 @@ void Board::add_move(int row, int col, bool vertical, Player player)
 		}
 		horizontal_dashes[row][col] = 1;
 	}
-	recalculate_squares(player); // recalculate squares after making move
+	recalculate_squares(initial); // recalculate squares after making move
 }
 
-/*calculates owners of squares by checking 4 edges of square*/
-void Board::recalculate_squares(Player player)
+/*Calculates owners of squares by checking 4 edges of square, new squares have owner with initials*/
+void Board::recalculate_squares(char initial)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -129,35 +133,48 @@ void Board::recalculate_squares(Player player)
 		{
 			if (squares_claimed[i][j] == ' ' && horizontal_dashes[i][j] && horizontal_dashes[i + 1][j] && vertical_dashes[i][j] && vertical_dashes[i][j + 1]) // checks if square already has a owner, then checks if all 4 edges are filled
 			{
-				if (player == Player::user)
-				{
-					squares_claimed[i][j] = 'U';
-				}
-				else
-				{
-					squares_claimed[i][j] = 'C';
-				}
+				squares_claimed[i][j] = initial;
 			}
 		}
 	}
 }
 
-int main()
+/*Returns score of player with given initial*/
+int Board::get_score(const char &initial) const
 {
-	Board game{3};
-	game.add_move(0, 0, 0, Player::user);
-	game.add_move(1, 2, 0, Player::user);
-	game.add_move(0, 0, 1, Player::user);
-	game.add_move(2, 2, 1, Player::user);
-	game.add_move(2, 0, 1, Player::user);
-	game.add_move(2, 3, 1, Player::user);
-	game.add_move(3, 1, 0, Player::user);
-	game.add_move(1, 0, 0, Player::user);
-	game.add_move(0, 1, 1, Player::user);
-	game.add_move(0, 1, 0, Player::user);
-	game.add_move(0, 2, 1, Player::user);
-	game.add_move(1, 1, 0, Player::computer);
-	game.add_move(2, 1, 1, Player::computer);
-	game.add_move(2, 1, 0, Player::user);
-	game.print();
+	int sum = 0;
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			sum += (squares_claimed[i][j] == initial);
+		}
+	}
+	return sum;
+}
+
+/*Returns true if all edges are filled and game is finishes*/
+bool Board::finished() const
+{
+	for (int i = 0; i <= size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			if (!horizontal_dashes[i][j])
+			{
+				return false;
+			}
+		}
+	}
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j <= size; j++)
+		{
+			if (!vertical_dashes[i][j])
+			{
+				return false;
+			}
+		}
+	}
+	return true;
 }
