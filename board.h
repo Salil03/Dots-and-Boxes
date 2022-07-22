@@ -1,13 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Players with ability to make moves
-enum class Player
-{
-	user = 0,
-	computer = 1
-};
-
 /* Board class with helper functions
 TODO:
 Add scores
@@ -22,12 +15,12 @@ public:
 	class Invalid_Move
 	{
 	};
-	Board();																	 // default initializer
-	Board(int sz);																 // initializer
-	void print() const;															 // print board to terminal
-	void add_move(int row, int col, bool vertical, Player player, char initial); // make a move
-	int get_score(const char &initial) const;									 // update score
-	bool finished() const;														 // check if game finished
+	Board();													  // default initializer
+	Board(int sz);												  // initializer
+	void print() const;											  // print board to terminal
+	void add_move(int row, int col, bool vertical, char initial); // make a move
+	int get_score(const char &initial) const;					  // update score
+	bool finished() const;										  // check if game finished
 
 private:
 	int size;								// size of board
@@ -67,6 +60,7 @@ Ugly code, rewrite if better method found
 */
 void Board::print() const
 {
+	cout << "\n";
 	static const char point = (char)254u; // character for vertex
 	cout << point;
 	for (int i = 0; i < size; i++)
@@ -95,13 +89,14 @@ void Board::print() const
 		}
 		cout << "\n";
 	}
+	cout << "\n";
 }
 
 /*Adds move made by Player and recalculates owners of squares*/
 
-void Board::add_move(int row, int col, bool vertical, Player player, char initial)
+void Board::add_move(int row, int col, bool vertical, char initial)
 {
-	if (row < 0 || row >= (size + vertical) || col < 0 || col >= (size + !vertical)) // maybe oversmart way to check bounds
+	if (row < 0 || (row + vertical) > size || col < 0 || (col + !vertical) > size) // maybe oversmart way to check bounds
 	{
 		throw Invalid_Move{};
 	}

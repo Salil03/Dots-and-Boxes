@@ -6,8 +6,9 @@ Dots and Boxes game written in C++
 - Interface for player move
 - Scoring system
 - Primitive algorithm for computer move
+- Finally can beat me!
 
 # Todo
 
-- Implement a better algorithm for computer move(Minimax with alpha-beta pruning sounds fun)
-- Show Board in a prettier way?
+- Implement some dots and boxes specific rules in minimax
+- Add a board GUI for easy input
