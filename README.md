@@ -1,6 +1,8 @@
 # Dots-and-Boxes
 Dots and Boxes game written in C++
 
+To play, just compile and run `main.cpp`.
+
 # Done
 - Board Class
 - Interface for player move
