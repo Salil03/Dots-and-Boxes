@@ -9,5 +9,5 @@ Dots and Boxes game written in C++
 
 # Todo
 
-- Implement a better algorithm for computer move
+- Implement a better algorithm for computer move(Minimax with alpha-beta pruning sounds fun)
 - Show Board in a prettier way?

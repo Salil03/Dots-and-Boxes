@@ -101,7 +101,7 @@ void Board::print() const
 
 void Board::add_move(int row, int col, bool vertical, Player player, char initial)
 {
-	if (row < 0 || row > (size + vertical) || col < 0 || col > (size + !vertical)) // maybe oversmart way to check bounds
+	if (row < 0 || row >= (size + vertical) || col < 0 || col >= (size + !vertical)) // maybe oversmart way to check bounds
 	{
 		throw Invalid_Move{};
 	}

@@ -1,7 +1,7 @@
 #include "algo.h"
 using namespace std;
 
-void game_loop(Board &game, Computer &user, Computer &computer) // void game_loop(Board &game, User &user, Computer &computer)
+void game_loop(Board &game, User &user, Computer &computer)
 {
 	bool user_turn = true;
 	int previous_score = 0;
@@ -30,7 +30,7 @@ void game_loop(Board &game, Computer &user, Computer &computer) // void game_loo
 int main()
 {
 	Board game{3};
-	Computer salil{"Salil", &game}; // User salil{"Salil", &game};
+	User salil{"Salil", &game};
 	Computer cosmos{"Cosmos", &game};
 	game_loop(game, salil, cosmos);
 }
