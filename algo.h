@@ -20,22 +20,22 @@ tuple<int, int, bool, int> Computer::minimax(Board &game, int depth, int alpha, 
 		tuple<int, int, bool, int> max_move = {0, 0, 0, -1000};
 		for (const auto &[row, col, vertical] : allowed_moves(game))
 		{
-			Board child = game;
-			int previous_score = child.get_score(max_agent);
-			child.add_move(row, col, vertical, max_agent);
+			int previous_score = game.get_score(max_agent);
+			game.add_move(row, col, vertical, max_agent);
 			tuple<int, int, bool, int> eval = {0, 0, 0, 0};
-			if (previous_score < child.get_score(max_agent)) // check if move switched turns
+			if (previous_score < game.get_score(max_agent)) // check if move switched turns
 			{
-				eval = minimax(child, depth - 1, alpha, beta, true, max_agent, min_agent);
+				eval = minimax(game, depth - 1, alpha, beta, true, max_agent, min_agent);
 			}
 			else
 			{
-				eval = minimax(child, depth - 1, alpha, beta, false, max_agent, min_agent);
+				eval = minimax(game, depth - 1, alpha, beta, false, max_agent, min_agent);
 			}
 			if (get<3>(eval) > get<3>(max_move))
 			{
 				max_move = {row, col, vertical, get<3>(eval)};
 			}
+			game.remove_move(row, col, vertical);
 			alpha = max(alpha, get<3>(eval)); // alpha beta pruning
 			if (beta <= alpha)
 			{
@@ -49,22 +49,22 @@ tuple<int, int, bool, int> Computer::minimax(Board &game, int depth, int alpha, 
 		tuple<int, int, bool, int> min_move = {0, 0, 0, 1000};
 		for (const auto &[row, col, vertical] : allowed_moves(game))
 		{
-			Board child = game;
-			int previous_score = child.get_score(min_agent);
-			child.add_move(row, col, vertical, min_agent);
+			int previous_score = game.get_score(min_agent);
+			game.add_move(row, col, vertical, min_agent);
 			tuple<int, int, bool, int> eval = {0, 0, 0, 0};
-			if (previous_score < child.get_score(min_agent))
+			if (previous_score < game.get_score(min_agent))
 			{
-				eval = minimax(child, depth - 1, alpha, beta, false, max_agent, min_agent);
+				eval = minimax(game, depth - 1, alpha, beta, false, max_agent, min_agent);
 			}
 			else
 			{
-				eval = minimax(child, depth - 1, alpha, beta, true, max_agent, min_agent);
+				eval = minimax(game, depth - 1, alpha, beta, true, max_agent, min_agent);
 			}
 			if (get<3>(eval) < get<3>(min_move))
 			{
 				min_move = {row, col, vertical, get<3>(eval)};
 			}
+			game.remove_move(row, col, vertical);
 			beta = min(beta, get<3>(eval));
 			if (beta <= alpha)
 			{
@@ -80,7 +80,7 @@ TODO: Improve it with some rule-based functions
 */
 int Computer::minimax_heuristic(Board &game, char &max_agent, char &min_agent) const
 {
-	return (game.get_score(max_agent) - game.get_score(min_agent));
+	return game.get_score(max_agent) - game.get_score(min_agent);
 }
 
 vector<tuple<int, int, bool>> Computer::allowed_moves(Board &game) const

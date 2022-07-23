@@ -15,20 +15,22 @@ public:
 	class Invalid_Move
 	{
 	};
-	Board();													  // default initializer
-	Board(int sz);												  // initializer
-	void print() const;											  // print board to terminal
-	void add_move(int row, int col, bool vertical, char initial); // make a move
-	int get_score(const char &initial) const;					  // update score
-	bool finished() const;										  // check if game finished
+	Board();																				  // default initializer
+	Board(int sz);																			  // initializer
+	void print() const;																		  // print board to terminal
+	void add_move(const int &row, const int &col, const bool &vertical, const char &initial); // make a move
+	void remove_move(const int &row, const int &col, const bool &vertical);					  // remove a move
+	int get_score(const char &initial) const;												  // update score
+	bool finished() const;																	  // check if game finished
 
 private:
-	int size;								// size of board
-	vector<vector<bool>> horizontal_dashes; // store horizontal lines
-	vector<vector<bool>> vertical_dashes;	// store vertical lines
-	vector<vector<char>> squares_claimed;	// store the owner of squares in grid
-	void recalculate_squares(char initial); // recalculate owner of squares in grid
-	friend class Computer;					// to allow algo to access horizontal_dashes, etc.
+	int size;									   // size of board
+	vector<vector<bool>> horizontal_dashes;		   // store horizontal lines
+	vector<vector<bool>> vertical_dashes;		   // store vertical lines
+	vector<vector<char>> squares_claimed;		   // store the owner of squares in grid
+	void recalculate_squares(const char &initial); // recalculate owner of squares in grid
+	void remove_recalculate_squares();			   // recalculate squares after removing a move
+	friend class Computer;						   // to allow algo to access horizontal_dashes, etc.
 };
 
 // By default initializes Board with size 3
@@ -94,7 +96,7 @@ void Board::print() const
 
 /*Adds move made by Player and recalculates owners of squares*/
 
-void Board::add_move(int row, int col, bool vertical, char initial)
+void Board::add_move(const int &row, const int &col, const bool &vertical, const char &initial)
 {
 	if (row < 0 || (row + vertical) > size || col < 0 || (col + !vertical) > size) // maybe oversmart way to check bounds
 	{
@@ -120,7 +122,7 @@ void Board::add_move(int row, int col, bool vertical, char initial)
 }
 
 /*Calculates owners of squares by checking 4 edges of square, new squares have owner with initials*/
-void Board::recalculate_squares(char initial)
+void Board::recalculate_squares(const char &initial)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -129,6 +131,45 @@ void Board::recalculate_squares(char initial)
 			if (squares_claimed[i][j] == ' ' && horizontal_dashes[i][j] && horizontal_dashes[i + 1][j] && vertical_dashes[i][j] && vertical_dashes[i][j + 1]) // checks if square already has a owner, then checks if all 4 edges are filled
 			{
 				squares_claimed[i][j] = initial;
+			}
+		}
+	}
+}
+
+void Board::remove_move(const int &row, const int &col, const bool &vertical)
+{
+	if (row < 0 || (row + vertical) > size || col < 0 || (col + !vertical) > size) // maybe oversmart way to check bounds
+	{
+		throw Invalid_Move{};
+	}
+	if (vertical)
+	{
+		if (!vertical_dashes[row][col]) // throw error if move is already made
+		{
+			throw Invalid_Move{};
+		}
+		vertical_dashes[row][col] = 0;
+	}
+	else
+	{
+		if (!horizontal_dashes[row][col]) // throw error if move is already made
+		{
+			throw Invalid_Move{};
+		}
+		horizontal_dashes[row][col] = 0;
+	}
+	remove_recalculate_squares();
+}
+
+void Board::remove_recalculate_squares()
+{
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			if (!horizontal_dashes[i][j] || !horizontal_dashes[i + 1][j] || !vertical_dashes[i][j] || !vertical_dashes[i][j + 1])
+			{
+				squares_claimed[i][j] = ' ';
 			}
 		}
 	}
