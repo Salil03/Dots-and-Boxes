@@ -45,7 +45,7 @@ int main()
 	cin >> user_name;
 	user_name[0] = (char)toupper(user_name[0]);
 	User user{user_name, &game};
-	int search_depth = 10;
+	int search_depth = 8;
 	bool first_move;
 	cout << "Want first move?(0/1): ";
 	cin >> first_move;
