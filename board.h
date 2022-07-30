@@ -144,18 +144,10 @@ void Board::remove_move(const int &row, const int &col, const bool &vertical)
 	}
 	if (vertical)
 	{
-		if (!vertical_dashes[row][col]) // throw error if move is already made
-		{
-			throw Invalid_Move{};
-		}
 		vertical_dashes[row][col] = 0;
 	}
 	else
 	{
-		if (!horizontal_dashes[row][col]) // throw error if move is already made
-		{
-			throw Invalid_Move{};
-		}
 		horizontal_dashes[row][col] = 0;
 	}
 	remove_recalculate_squares();

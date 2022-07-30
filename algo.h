@@ -1,10 +1,168 @@
 #include "players.h"
 #include <random>
+#include <prettyprint.hpp>
 
 using namespace std;
 
 auto rd = std::random_device{};
 auto rng = std::default_random_engine{rd()}; // random engine for randomization
+
+/*Checks for chains, if not present calls minimax. If chains are present, opens with double cross strategy or whichever other method is beneficial*/
+
+void Computer::chain_solver(Board game, int depth)
+{
+	vector<tuple<int, int, bool, int>> ans;
+	for (int i = 0; i < game.size; i++)
+	{
+		for (int j = 0; j < game.size; j++)
+		{
+			if (filled_edges(game, i, j) == 3)
+			{
+				vector<tuple<int, int, bool>> moves;
+				dfs(game, i, j, -2, -2, moves, i, j);
+				if (moves.empty())
+				{
+					continue;
+				}
+				if (get<0>(moves.back()) == -1)
+				{
+					cout << moves << "\n";
+					moves.pop_back();
+					for (const auto &[row, col, vertical] : moves)
+					{
+						game.add_move(row, col, vertical, initial);
+						move_stack.push_back({row, col, vertical, initial});
+					}
+				}
+			}
+		}
+	}
+	tuple<int, int, bool, int> max_move = {0, 0, 0, -1000};
+	bool flag = false;
+	int move_stack_length = move_stack.size();
+	for (int i = 0; i < game.size; i++)
+	{
+		for (int j = 0; j < game.size; j++)
+		{
+			if (filled_edges(game, i, j) == 3)
+			{
+				vector<tuple<int, int, bool>> moves;
+				dfs(game, i, j, -2, -2, moves, i, j);
+				if (moves.empty())
+				{
+					continue;
+				}
+				flag = true;
+				cout << moves;
+				for (const auto &[row, col, vertical] : moves)
+				{
+					game.add_move(row, col, vertical, initial);
+				}
+				auto eval = minimax(game, depth, -3000, 3000, true, initial, opponent_initial);
+				if (get<3>(eval) > get<3>(max_move))
+				{
+					max_move = eval;
+					while (move_stack.size() != move_stack_length)
+					{
+						move_stack.pop_back();
+					}
+					for (const auto &[row, col, vertical] : moves)
+					{
+						move_stack.push_back({row, col, vertical, 0});
+					}
+					move_stack.push_back({max_move});
+				}
+				game.remove_move(get<0>(moves[moves.size() - 2]), get<1>(moves[moves.size() - 2]), get<2>(moves[moves.size() - 2]));
+				eval = minimax(game, depth, -3000, 3000, true, initial, opponent_initial);
+				if (get<3>(eval) > get<3>(max_move))
+				{
+					max_move = eval;
+					while (move_stack.size() != move_stack_length)
+					{
+						move_stack.pop_back();
+					}
+					for (const auto &[row, col, vertical] : moves)
+					{
+						move_stack.push_back({row, col, vertical, 0});
+					}
+					move_stack.erase(move_stack.end() - 2);
+					move_stack.push_back({max_move});
+				}
+				reverse(moves.begin(), moves.end());
+				for (const auto &[row, col, vertical] : moves)
+				{
+					game.remove_move(row, col, vertical);
+				}
+			}
+		}
+	}
+	if (!flag)
+	{
+		max_move = minimax(game, depth, -3000, 3000, true, initial, opponent_initial);
+		move_stack.push_back(max_move);
+	}
+	return;
+}
+
+void Computer::dfs(Board &game, const int node_row, const int node_col, const int parent_row, const int parent_col, vector<tuple<int, int, bool>> &moves, int &start_row, int &start_col)
+{
+	if (node_row == start_row && node_col == start_col && parent_row != -2)
+	{
+		moves.clear();
+		return;
+	}
+	if (node_row < game.size - 1 && !game.horizontal_dashes[node_row + 1][node_col] && (parent_row != node_row + 1 || parent_col != node_col) && (filled_edges(game, node_row + 1, node_col) == 2 || filled_edges(game, node_row + 1, node_col) == 3))
+	{
+		moves.push_back({node_row + 1, node_col, 0});
+		dfs(game, node_row + 1, node_col, node_row, node_col, moves, start_row, start_col);
+		return;
+	}
+	else if (node_row > 0 && !game.horizontal_dashes[node_row][node_col] && (parent_row != node_row - 1 || parent_col != node_col) && (filled_edges(game, node_row - 1, node_col) == 2 || filled_edges(game, node_row - 1, node_col) == 3))
+	{
+		moves.push_back({node_row, node_col, 0});
+		dfs(game, node_row - 1, node_col, node_row, node_col, moves, start_row, start_col);
+		return;
+	}
+	else if (node_col < game.size - 1 && !game.vertical_dashes[node_row][node_col + 1] && (parent_row != node_row || parent_col != node_col + 1) && (filled_edges(game, node_row, node_col + 1) == 2 || filled_edges(game, node_row, node_col + 1) == 3))
+	{
+		moves.push_back({node_row, node_col + 1, 1});
+		dfs(game, node_row, node_col + 1, node_row, node_col, moves, start_row, start_col);
+		return;
+	}
+	else if (node_col > 0 && !game.vertical_dashes[node_row][node_col] && (parent_row != node_row || parent_col != node_col - 1) && (filled_edges(game, node_row, node_col - 1) == 2 || filled_edges(game, node_row, node_col - 1) == 3))
+	{
+		moves.push_back({node_row, node_col, 1});
+		dfs(game, node_row, node_col - 1, node_row, node_col, moves, start_row, start_col);
+		return;
+	}
+	if (moves.size() < 2)
+	{
+		moves.clear();
+		return;
+	}
+	if (!game.horizontal_dashes[node_row + 1][node_col] && (parent_row != node_row + 1 || parent_col != node_col))
+	{
+		moves.push_back({node_row + 1, node_col, 0});
+		return;
+	}
+	else if (!game.horizontal_dashes[node_row][node_col] && (parent_row != node_row - 1 || parent_col != node_col))
+	{
+		moves.push_back({node_row, node_col, 0});
+		return;
+	}
+	else if (!game.vertical_dashes[node_row][node_col + 1] && (parent_row != node_row || parent_col != node_col + 1))
+	{
+		moves.push_back({node_row, node_col + 1, 1});
+		return;
+	}
+	else if (!game.vertical_dashes[node_row][node_col] && (parent_row != node_row || parent_col != node_col - 1))
+	{
+		moves.push_back({node_row, node_col, 1});
+		return;
+	}
+	moves.push_back({-1, -1, 0});
+	return;
+}
 
 /*Minimax algorithm with alpha beta pruning to compute next move. Searches for a given depth and tries to maximize score of max_agent
 Return type is <best_move_row, best_move_col, best_move_vertical, best_move_score>
@@ -163,7 +321,7 @@ vector<pair<int, int>> Computer::get_neighbours(Board &game, const int &row, con
 }
 
 /*Returns number of filled_edges in square at position (row, col)*/
-int Computer::filled_edges(Board &game, int &row, int &col) const
+int Computer::filled_edges(Board &game, const int &row, const int &col) const
 {
 	int sum = 0;
 	sum += game.horizontal_dashes[row][col];

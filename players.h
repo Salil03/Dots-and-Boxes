@@ -1,4 +1,5 @@
 #include "board.h"
+#include <prettyprint.hpp>
 using namespace std;
 
 // Class for human player
@@ -43,21 +44,29 @@ public:
 	string nickname;  // computer's nickname
 
 private:
-	char initial;																															// computer initial used for scoring
-	char opponent_initial;																													// oponent's initial, used in evalutation function
-	int minimax_depth;																														// depth for minimax														//
-	Board *board;																															// attached board
-	tuple<int, int, bool, int> minimax(Board &game, int depth, int alpha, int beta, bool maximize, char &max_agent, char &min_agent) const; // minimax solver with alpha-beta pruning
-	int minimax_heuristic(Board &game, char &max_agent, char &min_agent) const;																// evaluation function
-	vector<tuple<int, int, bool>> allowed_moves(Board &game) const;																			// returns a list of all the allowed moves in a position
-	vector<pair<int, int>> get_neighbours(Board &game, const int &row, const int &col, const bool &vertical) const;							// returns list of squares which contain the given edge
-	int filled_edges(Board &game, int &row, int &col) const;																				// returns the number of filled edges of a square
+	char initial;																																			 // computer initial used for scoring
+	char opponent_initial;																																	 // oponent's initial, used in evalutation function
+	int minimax_depth;																																		 // depth for minimax
+	vector<tuple<int, int, bool, int>> move_stack;																											 // pending moves to be played
+	Board *board;																																			 // attached board
+	void chain_solver(Board game, int depth);																												 // minimax with chain analysis
+	void dfs(Board &game, int node_row, int node_col, int parent_row, int parent_col, vector<tuple<int, int, bool>> &moves, int &start_row, int &start_col); // dfs to search for chains
+	tuple<int, int, bool, int> minimax(Board &game, int depth, int alpha, int beta, bool maximize, char &max_agent, char &min_agent) const;					 // minimax solver with alpha-beta pruning
+	int minimax_heuristic(Board &game, char &max_agent, char &min_agent) const;																				 // evaluation function
+	vector<tuple<int, int, bool>> allowed_moves(Board &game) const;																							 // returns a list of all the allowed moves in a position
+	vector<pair<int, int>> get_neighbours(Board &game, const int &row, const int &col, const bool &vertical) const;											 // returns list of squares which contain the given edge
+	int filled_edges(Board &game, const int &row, const int &col) const;																					 // returns the number of filled edges of a square
 };
 
 /*Calls appropriate solve() to compute next move and sends it to the attached board*/
 void Computer::make_move()
 {
-	auto result = minimax(*(this->board), minimax_depth, -3000, 3000, true, initial, opponent_initial);
+	if (move_stack.empty())
+	{
+		chain_solver(*board, minimax_depth);
+	}
+	tuple<int, int, bool, int> result = move_stack[0];
+	move_stack.erase(move_stack.begin());
 	// cout << get<0>(result) << " " << get<1>(result) << " " << get<2>(result) << " " << get<3>(result) << "\n";
 	board->add_move(get<0>(result), get<1>(result), get<2>(result), initial);
 }
