@@ -1,5 +1,4 @@
 #include "board.h"
-#include <prettyprint.hpp>
 using namespace std;
 
 // Class for human player
@@ -19,6 +18,7 @@ private:
 /*Prompts the user for a move and sends it to the attached board*/
 void User::make_move()
 {
+	
 	int row, col;
 	bool vertical;
 	cout << nickname << ", Make a move\n"
@@ -28,7 +28,15 @@ void User::make_move()
 	cin >> col;
 	cout << "Enter orientation(1 = vertical, 0 = horizontal): ";
 	cin >> vertical;
-	board->add_move(row, col, vertical, initial);
+	try
+	{
+		board->add_move(row, col, vertical, initial);
+	}
+	catch(...)
+	{
+		cout << "Invalid move, please make a valid move" << endl;
+		make_move();
+	}
 }
 
 // Class for computer player

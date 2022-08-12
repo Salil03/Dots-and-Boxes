@@ -1,6 +1,5 @@
 #include "players.h"
 #include <random>
-#include <prettyprint.hpp>
 
 using namespace std;
 
@@ -26,7 +25,6 @@ void Computer::chain_solver(Board game, int depth)
 				}
 				if (get<0>(moves.back()) == -1)
 				{
-					cout << moves << "\n";
 					moves.pop_back();
 					for (const auto &[row, col, vertical] : moves)
 					{
@@ -53,7 +51,6 @@ void Computer::chain_solver(Board game, int depth)
 					continue;
 				}
 				flag = true;
-				cout << moves;
 				for (const auto &[row, col, vertical] : moves)
 				{
 					game.add_move(row, col, vertical, initial);
